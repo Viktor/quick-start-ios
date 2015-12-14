@@ -15,8 +15,8 @@
 @property (strong, nonatomic) IBOutlet UILabel *MessageLabel;
 @property (strong, nonatomic) IBOutlet UILabel *indicatorLabel;
 
--(void)updateSenderName:(NSString *) senderName;
--(void)updateDate:(NSString *)date;
--(void)updateMessageLabel:(NSString *)message;
+- (void)updateSenderName:(NSString *) senderName;
+- (void)updateDate:(NSString *)date;
+- (void)updateMessageLabel:(NSString *)message;
 
 @end

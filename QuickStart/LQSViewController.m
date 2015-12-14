@@ -65,9 +65,9 @@ static UIColor *LSRandomColor(void)
 @interface LQSViewController () <UITextViewDelegate, LYRQueryControllerDelegate, UITableViewDelegate, UITableViewDataSource, UIImagePickerControllerDelegate,UINavigationControllerDelegate,UIAlertViewDelegate>
 
 @property (nonatomic) LYRConversation *conversation;
-@property (nonatomic, retain) LYRQueryController *queryController;
+@property (nonatomic) LYRQueryController *queryController;
 @property (nonatomic) BOOL sendingImage;
-@property (strong,nonatomic) UIImage *photo; //this is where the selected photo will be stored
+@property (nonatomic) UIImage *photo; // This is where the selected photo will be stored
 
 @end
 
@@ -94,7 +94,8 @@ static UIColor *LSRandomColor(void)
     
 }
 
--(void)viewWillAppear:(BOOL)animated {
+- (void)viewWillAppear:(BOOL)animated
+{
     [self scrollToBottom];
 }
 
@@ -172,7 +173,7 @@ static UIColor *LSRandomColor(void)
     }
 }
 
--(void)setupQueryController
+- (void)setupQueryController
 {
     // For more information about the Query Controller, check out https://developer.layer.com/docs/integration/ios#querying
     
@@ -182,22 +183,21 @@ static UIColor *LSRandomColor(void)
     query.sortDescriptors = @[ [NSSortDescriptor sortDescriptorWithKey:@"position" ascending:YES]];
     
     // Set up query controller
-    NSError *queryControllerInitError;
-    self.queryController = [self.layerClient queryControllerWithQuery:query error:&queryControllerInitError];
-    if (queryControllerInitError == nil) {
+    NSError *error;
+    self.queryController = [self.layerClient queryControllerWithQuery:query error:&error];
+    if (self.queryController) {
         self.queryController.delegate = self;
         
-        NSError *queryControllerExecuteError;
-        BOOL success = [self.queryController execute:&queryControllerExecuteError];
+        BOOL success = [self.queryController execute:&error];
         if (success) {
             NSLog(@"Query fetched %tu message objects", [self.queryController numberOfObjectsInSection:0]);
         } else {
-            NSLog(@"Query failed with error: %@", queryControllerExecuteError);
+            NSLog(@"Query failed with error: %@", error);
         }
         [self.tableView reloadData];
         [self.conversation markAllMessagesAsRead:nil];
     } else {
-        NSLog(@"Query Controller initialization failed with error: %@", queryControllerInitError);
+        NSLog(@"Query Controller initialization failed with error: %@", error);
     }
 }
 
@@ -215,7 +215,7 @@ static UIColor *LSRandomColor(void)
     return rows;
 }
 
--(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     LYRMessage *message = [self.queryController objectAtIndexPath:indexPath];
     LYRMessagePart *messagePart = message.parts[0];
@@ -327,8 +327,8 @@ static UIColor *LSRandomColor(void)
     [self.inputTextView resignFirstResponder];
 }
 
-- (void)sendMessage:(NSString *)messageText{
-    
+- (void)sendMessage:(NSString *)messageText
+{
     // Send a Message
     // See "Quick Start - Send a Message" for more details
     // https://developer.layer.com/docs/quick-start/ios#send-a-message
@@ -346,8 +346,7 @@ static UIColor *LSRandomColor(void)
         NSData *imageData = UIImagePNGRepresentation(image);
         messagePart = [LYRMessagePart messagePartWithMIMEType:MIMETypeImagePNG data:imageData];
         self.sendingImage = NO;
-    }else
-    {
+    } else {
         //Creates a message part with text/plain MIME Type
         messagePart = [LYRMessagePart messagePartWithText:messageText];
     }
@@ -445,15 +444,14 @@ static UIColor *LSRandomColor(void)
 // If the user hits Return then dismiss the keyboard and move the view back down
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text
 {
-    if ([text isEqualToString:@"\n"])
-    {
+    if ([text isEqualToString:@"\n"]) {
         [self.inputTextView resignFirstResponder];
         [self moveViewUpToShowKeyboard:NO];
         return NO;
     }
     
-    int limit = LQSMaxCharacterLimit;
-    return !([self.inputTextView.text length]>limit && [text length] > range.length);
+    NSUInteger limit = LQSMaxCharacterLimit;
+    return !([self.inputTextView.text length] > limit && [text length] > range.length);
 }
 
 #pragma mark - Query Controller Delegate Methods
@@ -524,18 +522,16 @@ static UIColor *LSRandomColor(void)
 
 #pragma - mark General Helper Methods
 
--(void)scrollToBottom{
-    NSUInteger messages = [self numberOfMessages];
-    
-    if(self.conversation && messages > 0)
-    {
+- (void)scrollToBottom
+{
+    NSUInteger messageCount = [self numberOfMessages];
+    if (self.conversation && messageCount > 0) {
         NSIndexPath* ip = [NSIndexPath indexPathForRow:[self.tableView numberOfRowsInSection:0] - 1 inSection:0];
         [self.tableView scrollToRowAtIndexPath:ip atScrollPosition:UITableViewScrollPositionTop animated:YES];
-        
     }
 }
 
--(void)setNavbarColorFromConversationMetadata:(NSDictionary *)metadata
+- (void)setNavbarColorFromConversationMetadata:(NSDictionary *)metadata
 {
     // For more information about Metadata, check out https://developer.layer.com/docs/integration/ios#metadata
     if (![metadata valueForKey:LQSBackgroundColorMetadataKey]) {
@@ -550,20 +546,19 @@ static UIColor *LSRandomColor(void)
                                                                            alpha:1.0f];
 }
 
-- (IBAction)CameraButtonSelected:(UIBarButtonItem *)sender {
+- (IBAction)CameraButtonSelected:(UIBarButtonItem *)sender
+{
     UIImagePickerController *picker = [[UIImagePickerController alloc]init];
     picker.delegate = self;
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
         picker.sourceType = UIImagePickerControllerSourceTypeCamera;
-    }
-    else if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeSavedPhotosAlbum ])
-    {
+    } else if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeSavedPhotosAlbum]) {
         picker.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
     }
     [self presentViewController:picker animated:YES completion:nil];
 }
 
--(NSUInteger)numberOfMessages
+- (NSUInteger)numberOfMessages
 {
     LYRQuery *message = [LYRQuery queryWithQueryableClass:[LYRMessage class]];
     
@@ -576,55 +571,45 @@ static UIColor *LSRandomColor(void)
 
 - (IBAction)clearButtonPressed:(UIBarButtonItem *)sender
 {
-    
     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Delete messages?"
                                                     message:@"This action will clear all your current messages. Are you sure you want to do this?"
                                                    delegate:self
                                           cancelButtonTitle:@"NO"
                                           otherButtonTitles:@"Yes",nil];
     [alert show];
-    
-    
 }
 
--(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
-    if (buttonIndex ==1) {
+    if (buttonIndex == 1) {
         [self clearMessages];
     }
 }
 
--(void)clearMessages
+- (void)clearMessages
 {
-    
-    
     LYRQuery *message = [LYRQuery queryWithQueryableClass:[LYRMessage class]];
     
     NSError *error;
     NSOrderedSet *messageList = [self.layerClient executeQuery:message error:&error];
     
-    
-    
-    if ([messageList count] > 0)
-    {
-        
-        for (int i = 0; i < [messageList count];  i++)
-        {
-            LYRMessage *message = [messageList objectAtIndex:i];
-            bool success = [message delete:LYRDeletionModeAllParticipants error:&error];
+    if (messageList) {
+        for (LYRMessage *message in messageList) {
+            BOOL success = [message delete:LYRDeletionModeAllParticipants error:&error];
             NSLog(@"Message is: %@", message.parts);
-            
             if (success) {
-                NSLog(@"The message has been delted");
-            }else {
-                NSLog(@"Error");
+                NSLog(@"The message has been deleted");
+            } else {
+                NSLog(@"Failed deletion of message: %@", error);
             }
         }
-        
+    } else {
+        NSLog(@"Failed querying for messages: %@", error);
     }
 }
 
-- (IBAction)CameraButtonPressed:(UIButton *)sender {
+- (IBAction)cameraButtonPressed:(UIButton *)sender
+{
     self.inputTextView.text = @"";
     UIImagePickerController *picker = [[UIImagePickerController alloc]init];
     picker.delegate = self;
@@ -633,26 +618,20 @@ static UIColor *LSRandomColor(void)
     [self presentViewController:picker animated:YES completion:nil];
 }
 
-
 #pragma mark - UIImagePickerControllerDelegate
 
--(void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
     self.sendingImage = YES;
-    UIImage *image = info[UIImagePickerControllerEditedImage];
-    
-    if (!image) {
-        image = info[UIImagePickerControllerOriginalImage];
-    }
+    UIImage *image = info[UIImagePickerControllerEditedImage] ?: info[UIImagePickerControllerOriginalImage];
     self.photo = image;
     [self dismissViewControllerAnimated:YES completion:nil];
     
     self.messageImage.image = image;
-    
 }
 
 
--(void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
 {
     NSLog(@"Cancel");
     [self dismissViewControllerAnimated:YES completion:nil];
@@ -661,7 +640,7 @@ static UIColor *LSRandomColor(void)
 
 #pragma mark - Segue method
 
--(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
     if ([sender isKindOfClass:[UIButton class]]) {
         if ([segue.destinationViewController isKindOfClass:[LQSAnnouncementsTableViewController class]]) {
