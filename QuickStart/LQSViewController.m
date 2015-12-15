@@ -334,7 +334,7 @@ static UIColor *LSRandomColor(void)
     // https://developer.layer.com/docs/quick-start/ios#send-a-message
     
     LYRMessagePart *messagePart;
-    self.messageImage.image = nil;
+    self.messageImageView.image = nil;
     // If no conversations exist, create a new conversation object with a single participant
     if (!self.conversation) {
         [self fetchLayerConversation];
@@ -627,7 +627,7 @@ static UIColor *LSRandomColor(void)
     self.photo = image;
     [self dismissViewControllerAnimated:YES completion:nil];
     
-    self.messageImage.image = image;
+    self.messageImageView.image = image;
 }
 
 

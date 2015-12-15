@@ -38,9 +38,9 @@
     if (self.queryController) {
         self.queryController.delegate = self;
         
-        BOOL success = [_queryController execute:&error];
+        BOOL success = [self.queryController execute:&error];
         if (success) {
-            NSLog(@"Announcements Query fetched %tu announcement objects", [_queryController numberOfObjectsInSection:0]);
+            NSLog(@"Announcements Query fetched %tu announcement objects", [self.queryController numberOfObjectsInSection:0]);
             //if there are no announcements,show an alert
             if (self.queryController.count <= 0) {
                 
@@ -93,11 +93,17 @@
     return self.queryController.count;
 }
 
-// If an announcements is unread and selected, then we mark the announcment as "read"
+// If an unread Announcement is selected, then mark as read
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     LYRAnnouncement *announcement = [_queryController objectAtIndexPath:indexPath];
-    [announcement markAsRead:nil];
+    if (announcement.isUnread) {
+        NSError *error = nil;
+        BOOL success = [announcement markAsRead:&error];
+        if (!success) {
+            NSLog(@"Failed marking Announcement as read: %@", error);
+        }
+    }
     [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
@@ -105,11 +111,6 @@
 {
     static NSString *cellIdentifier = @"AnnouncementCell";
     LQSAnnouncementsTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier forIndexPath:indexPath];
-    
-    if (!cell) {
-        cell = [[LQSAnnouncementsTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellIdentifier];
-    }
-    
     LYRAnnouncement *announcementsInfo = [self.queryController objectAtIndexPath:indexPath];
     LYRMessage *message = [self.queryController objectAtIndexPath:indexPath];
     

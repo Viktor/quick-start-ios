@@ -17,7 +17,7 @@
 @property (nonatomic, weak) IBOutlet UITextView *inputTextView;
 @property (nonatomic, weak) IBOutlet UITableView *tableView;
 @property (nonatomic, weak) IBOutlet UILabel *typingIndicatorLabel;
-@property (nonatomic, weak) IBOutlet UIImageView *messageImage;
+@property (nonatomic, weak) IBOutlet UIImageView *messageImageView;
 
 - (IBAction)clearButtonPressed:(UIBarButtonItem *)sender;
 - (IBAction)cameraButtonPressed:(UIButton *)sender;
