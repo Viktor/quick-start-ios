@@ -11,7 +11,9 @@
 @interface LQSChatMessageCell ()
 
 @property (nonatomic) UIImageView *messageImageView;
+
 @end
+
 @implementation LQSChatMessageCell
 
 - (id)initWithCoder:(NSCoder *)aDecoder
@@ -32,14 +34,14 @@
     self.messageImageView.image = image;
 }
 
--(void)removeImage
+- (void)removeImage
 {
     if (self.messageImageView.image) {
         self.messageImageView.image = nil;
     }
 }
 
--(void)assignText:(NSString *)text
+- (void)assignText:(NSString *)text
 {
     self.messageLabel.text = text;
 }

@@ -25,17 +25,17 @@
     return self;
 }
 
--(void)updateSenderName:(NSString *) senderName
+- (void)updateSenderName:(NSString *) senderName
 {
     self.senderName.text = senderName;
 }
 
--(void)updateDate:(NSString *)date
+- (void)updateDate:(NSString *)date
 {
     self.dateLabel.text = date;
 }
 
--(void)updateMessageLabel:(NSString *)message
+- (void)updateMessageLabel:(NSString *)message
 {
     self.MessageLabel.text = message;
 }

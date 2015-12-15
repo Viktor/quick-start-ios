@@ -13,16 +13,13 @@
 
 @property (nonatomic) LYRClient *layerClient;
 
-@property (weak, nonatomic) IBOutlet UIButton *sendButton;
-@property (nonatomic, retain) IBOutlet UITextView *inputTextView;
-@property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (nonatomic, weak) IBOutlet UIButton *sendButton;
+@property (nonatomic, weak) IBOutlet UITextView *inputTextView;
+@property (nonatomic, weak) IBOutlet UITableView *tableView;
 @property (nonatomic, weak) IBOutlet UILabel *typingIndicatorLabel;
-@property (strong, nonatomic) IBOutlet UIImageView *messageImage;
+@property (nonatomic, weak) IBOutlet UIImageView *messageImageView;
 
 - (IBAction)clearButtonPressed:(UIBarButtonItem *)sender;
-- (IBAction)CameraButtonPressed:(UIButton *)sender;
-
-
-
+- (IBAction)cameraButtonPressed:(UIButton *)sender;
 
 @end

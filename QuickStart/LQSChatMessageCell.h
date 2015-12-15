@@ -14,10 +14,8 @@
 @property (nonatomic, weak) IBOutlet UILabel *messageLabel;
 @property (nonatomic, weak) IBOutlet UIImageView *messageStatus;
 
--(void)updateWithImage:(UIImage *)image;
--(void)removeImage;
--(void)assignText:(NSString *)text;
-
-
+- (void)updateWithImage:(UIImage *)image;
+- (void)removeImage;
+- (void)assignText:(NSString *)text;
 
 @end

@@ -12,8 +12,6 @@
 
 @interface LQSAnnouncementsTableViewController : UITableViewController
 
-@property (strong, nonatomic) IBOutletCollection(UILabel) NSArray *SenderName;
-
 @property (nonatomic) LYRClient *layerClient;
 
 @end

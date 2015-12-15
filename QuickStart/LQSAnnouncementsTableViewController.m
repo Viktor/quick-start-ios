@@ -17,30 +17,30 @@
 
 @property (nonatomic) BOOL shouldScrollAfterFirstAppearance;
 @property (nonatomic) BOOL shouldScrollAfterUpdates;
-@property (strong,nonatomic) NSOrderedSet *announcements;
-@property (nonatomic, retain) LYRQueryController *queryController;
+@property (nonatomic) NSOrderedSet *announcements;
+@property (nonatomic) LYRQueryController *queryController;
 
 @end
 
 @implementation LQSAnnouncementsTableViewController
 
-- (void)viewDidLoad {
+- (void)viewDidLoad
+{
     [super viewDidLoad];
     
     // Set up query controller
-    NSError *queryControllerInitError;
+    NSError *error;
     LYRQuery *query = [LYRQuery queryWithQueryableClass:[LYRAnnouncement class]];
     query.sortDescriptors = @[ [NSSortDescriptor sortDescriptorWithKey:@"position" ascending:NO]];
     
     // Set up query controller
-    self.queryController = [self.layerClient queryControllerWithQuery:query error:&queryControllerInitError];
-    if (queryControllerInitError == nil) {
-        _queryController.delegate = self;
+    self.queryController = [self.layerClient queryControllerWithQuery:query error:&error];
+    if (self.queryController) {
+        self.queryController.delegate = self;
         
-        NSError *queryControllerExecuteError;
-        BOOL success = [_queryController execute:&queryControllerExecuteError];
+        BOOL success = [self.queryController execute:&error];
         if (success) {
-            NSLog(@"Announcements Query fetched %tu announcement objects", [_queryController numberOfObjectsInSection:0]);
+            NSLog(@"Announcements Query fetched %tu announcement objects", [self.queryController numberOfObjectsInSection:0]);
             //if there are no announcements,show an alert
             if (self.queryController.count <= 0) {
                 
@@ -62,27 +62,21 @@
                 
                 [empty_view addSubview:label];
                 self.view = empty_view;
-                
             }
         } else {
-            NSLog(@"Announcements Query failed with error: %@", queryControllerExecuteError);
+            NSLog(@"Announcements Query failed with error: %@", error);
         }
     } else {
-        NSLog(@"Announcements Query Controller initialization failed with error: %@", queryControllerInitError);
+        NSLog(@"Announcements Query Controller initialization failed with error: %@", error);
     }
 }
 
--(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
-    NSURL *ourURL = [[NSURL alloc]initWithString:@"http://bit.ly/layer-announcements"];
-    if (buttonIndex ==1) {
+    NSURL *ourURL = [[NSURL alloc] initWithString:@"http://bit.ly/layer-announcements"];
+    if (buttonIndex == 1) {
         [[UIApplication sharedApplication] openURL:ourURL];
     }
-}
-
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
 }
 
 #pragma mark - Table view data source
@@ -99,25 +93,24 @@
     return self.queryController.count;
 }
 
-//If an announcements is unread and selected, then we mark the announcment as "read"
+// If an unread Announcement is selected, then mark as read
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     LYRAnnouncement *announcement = [_queryController objectAtIndexPath:indexPath];
-    [announcement markAsRead:nil];
+    if (announcement.isUnread) {
+        NSError *error = nil;
+        BOOL success = [announcement markAsRead:&error];
+        if (!success) {
+            NSLog(@"Failed marking Announcement as read: %@", error);
+        }
+    }
     [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
-//display announcements on tableview
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    
-    static NSString *CellIdentifier = @"cell";
-    LQSAnnouncementsTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-    
-    if (!cell) {
-        cell = [[LQSAnnouncementsTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
-    }
-    
+    static NSString *cellIdentifier = @"AnnouncementCell";
+    LQSAnnouncementsTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier forIndexPath:indexPath];
     LYRAnnouncement *announcementsInfo = [self.queryController objectAtIndexPath:indexPath];
     LYRMessage *message = [self.queryController objectAtIndexPath:indexPath];
     
@@ -132,7 +125,7 @@
     
     if (announcementsInfo.isUnread) {
         cell.indicatorLabel.hidden = NO;
-    }else {
+    } else {
         cell.indicatorLabel.hidden = YES;
     }
     
