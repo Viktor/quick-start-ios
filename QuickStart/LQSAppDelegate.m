@@ -127,8 +127,7 @@ static NSString *const LQSLayerAppIDString = @"LAYER_APP_ID";
     [[UIApplication sharedApplication] registerForRemoteNotifications];
 }
 
-- (void)application:(UIApplication *) application handleActionWithIdentifier:(NSString *) identifier
-forRemoteNotification:(NSDictionary *) notification
+- (void)application:(UIApplication *)application handleActionWithIdentifier:(NSString *)identifier forRemoteNotification:(NSDictionary *)notification
   completionHandler:(void (^)()) completionHandler {
     
     if ([identifier isEqualToString: LQSAcceptIdentifier]) {
