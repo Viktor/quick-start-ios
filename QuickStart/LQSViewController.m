@@ -95,8 +95,8 @@ static UIColor *LSRandomColor(void)
     
 }
 
--(void)viewWillAppear:(BOOL)animated {
-    if(self.queryController) {
+- (void)viewWillAppear:(BOOL)animated {
+    if (self.queryController) {
         [self scrollToBottom];
     }
 }
@@ -140,7 +140,7 @@ static UIColor *LSRandomColor(void)
 {
     // Fetches all conversations between the authenticated user and the supplied participant
     // For more information about Querying, check out https://developer.layer.com/docs/integration/ios#querying
-    if(!self.conversation) {
+    if (!self.conversation) {
         NSError *error;
         // Trying creating a new distinct conversation between all 3 participants
         self.conversation = [self.layerClient newConversationWithParticipants:[NSSet setWithArray:@[ LQSParticipantUserID, LQSParticipant2UserID  ]] options:nil error:&error];
@@ -344,8 +344,8 @@ static UIColor *LSRandomColor(void)
     LYRPushNotificationConfiguration *defaultConfiguration = [LYRPushNotificationConfiguration new];
     defaultConfiguration.alert = pushMessage;
     defaultConfiguration.category = LQSCategoryIdentifier;
-    //The following dictionary will appear in push payload
-    defaultConfiguration.data = @{@"test_key" : @"test_value"};
+    // The following dictionary will appear in push payload
+    defaultConfiguration.data = @{ @"test_key": @"test_value"};
     NSDictionary *pushOptions = @{ LYRMessageOptionsPushNotificationConfigurationKey: defaultConfiguration };
     
     LYRMessage *message = [self.layerClient newMessageWithParts:@[messagePart] options:pushOptions error:nil];
