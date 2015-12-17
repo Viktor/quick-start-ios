@@ -27,6 +27,9 @@ static NSString *const LQSLayerAppIDString = @"LAYER_APP_ID";
     NSString *const LQSInitialMessageText =  @"Hey Simulator! This is your friend, Device.";
 #endif
     NSString *const LQSParticipant2UserID = @"Dashboard";
+    NSString *const LQSCategoryIdentifier = @"category_lqs";
+    NSString *const LQSAcceptIdentifier = @"ACCEPT_IDENTIFIER";
+    NSString *const LQSIgnoreIdentifier = @"IGNORE_IDENTIFIER";
 
 @interface LQSAppDelegate () <LYRClientDelegate>
 
@@ -87,14 +90,53 @@ static NSString *const LQSLayerAppIDString = @"LAYER_APP_ID";
     // Checking if app is running iOS 8
     if ([application respondsToSelector:@selector(registerForRemoteNotifications)]) {
         // Register device for iOS8
-        UIUserNotificationSettings *notificationSettings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeAlert | UIUserNotificationTypeBadge | UIUserNotificationTypeSound categories:nil];
-        [application registerUserNotificationSettings:notificationSettings];
-        [application registerForRemoteNotifications];
+        [self setupPushNotificationOptions];
     } else {
         // Register device for iOS7
         [application registerForRemoteNotificationTypes:UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeBadge];
     }
 }
+
+- (void)setupPushNotificationOptions
+{
+    UIMutableUserNotificationAction *acceptAction = [[UIMutableUserNotificationAction alloc] init];
+    acceptAction.identifier = LQSAcceptIdentifier;
+    acceptAction.title = @"Show me!";
+    acceptAction.activationMode = UIUserNotificationActivationModeBackground;
+    acceptAction.destructive = NO;
+
+    UIMutableUserNotificationAction *ignoreAction =
+    [[UIMutableUserNotificationAction alloc] init];
+    ignoreAction.identifier = LQSIgnoreIdentifier;
+    ignoreAction.title = @"Ignore";
+    ignoreAction.activationMode = UIUserNotificationActivationModeBackground;
+    ignoreAction.destructive = YES;
+    
+    UIMutableUserNotificationCategory *category = [[UIMutableUserNotificationCategory alloc] init];
+    category.identifier = LQSCategoryIdentifier;
+    [category setActions:@[acceptAction, ignoreAction]
+              forContext:UIUserNotificationActionContextDefault];
+    [category setActions:@[acceptAction, ignoreAction] forContext:UIUserNotificationActionContextMinimal];
+
+    NSSet *categories = [NSSet setWithObjects:category, nil];
+    
+    UIUserNotificationType types = UIUserNotificationTypeAlert | UIUserNotificationTypeSound |UIUserNotificationTypeBadge;
+    UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:types
+                                                                             categories:categories];
+    [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
+    [[UIApplication sharedApplication] registerForRemoteNotifications];
+}
+
+- (void)application:(UIApplication *)application handleActionWithIdentifier:(NSString *)identifier forRemoteNotification:(NSDictionary *)notification
+  completionHandler:(void (^)()) completionHandler {
+    
+    if ([identifier isEqualToString: LQSAcceptIdentifier]) {
+        NSLog(@"Accept Tapped!");
+    }
+    
+    completionHandler();
+}
+
 
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
 {
