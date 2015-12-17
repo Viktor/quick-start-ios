@@ -15,6 +15,7 @@ extern NSString *const LQSCurrentUserID;
 extern NSString *const LQSParticipantUserID;
 extern NSString *const LQSParticipant2UserID;
 extern NSString *const LQSInitialMessageText;
+extern NSString *const LQSCategoryIdentifier;
 
 // Metadata keys related to navbar color
 static NSString *const LQSBackgroundColorMetadataKey = @"backgroundColor";
@@ -94,9 +95,10 @@ static UIColor *LSRandomColor(void)
     
 }
 
-- (void)viewWillAppear:(BOOL)animated
-{
-    [self scrollToBottom];
+-(void)viewWillAppear:(BOOL)animated {
+    if(self.queryController) {
+        [self scrollToBottom];
+    }
 }
 
 - (void)dealloc
@@ -138,38 +140,23 @@ static UIColor *LSRandomColor(void)
 {
     // Fetches all conversations between the authenticated user and the supplied participant
     // For more information about Querying, check out https://developer.layer.com/docs/integration/ios#querying
-    
-    LYRQuery *query = [LYRQuery queryWithQueryableClass:[LYRConversation class]];
-    query.predicate = [LYRPredicate predicateWithProperty:@"participants" predicateOperator:LYRPredicateOperatorIsEqualTo value:@[ LQSCurrentUserID, LQSParticipantUserID, LQSParticipant2UserID ]];
-    query.sortDescriptors = @[ [NSSortDescriptor sortDescriptorWithKey:@"createdAt" ascending:NO] ];
-    
-    NSError *error;
-    NSOrderedSet *conversations = [self.layerClient executeQuery:query error:&error];
-    
-    if (conversations.count <= 0) {
-        NSError *conv_error = nil;
-        self.conversation = [self.layerClient newConversationWithParticipants:[NSSet setWithArray:@[ LQSParticipantUserID, LQSParticipant2UserID  ]] options:nil error:&conv_error];
+    if(!self.conversation) {
+        NSError *error;
+        // Trying creating a new distinct conversation between all 3 participants
+        self.conversation = [self.layerClient newConversationWithParticipants:[NSSet setWithArray:@[ LQSParticipantUserID, LQSParticipant2UserID  ]] options:nil error:&error];
         if (!self.conversation) {
-            NSLog(@"New Conversation creation failed: %@", conv_error);
+            // If a conversation already exists, use that one
+            if (error.code == LYRErrorDistinctConversationExists) {
+                self.conversation = error.userInfo[LYRExistingDistinctConversationKey];
+                NSLog(@"Conversation already exists between participants. Using existing");
+            }
         }
     }
+    NSLog(@"Conversation identifier: %@",self.conversation.identifier);
     
-    if (!error) {
-        NSLog(@"%tu conversations with participants %@", conversations.count, @[ LQSCurrentUserID, LQSParticipantUserID, LQSParticipant2UserID ]);
-    } else {
-        NSLog(@"Query failed with error %@", error);
-    }
-    
-    // Retrieve the last conversation
-    if (conversations.count) {
-        self.conversation = [conversations lastObject];
-        NSLog(@"Get last conversation object: %@",self.conversation.identifier);
-        //[self.conversation delete:LYRDeletionModeAllParticipants error:nil];
-        
-        // setup query controller with messages from last conversation
-        if (!self.queryController) {
-            [self setupQueryController];
-        }
+    // setup query controller with messages from last conversation
+    if (!self.queryController) {
+        [self setupQueryController];
     }
 }
 
@@ -356,6 +343,9 @@ static UIColor *LSRandomColor(void)
     
     LYRPushNotificationConfiguration *defaultConfiguration = [LYRPushNotificationConfiguration new];
     defaultConfiguration.alert = pushMessage;
+    defaultConfiguration.category = LQSCategoryIdentifier;
+    //The following dictionary will appear in push payload
+    defaultConfiguration.data = @{@"test_key" : @"test_value"};
     NSDictionary *pushOptions = @{ LYRMessageOptionsPushNotificationConfigurationKey: defaultConfiguration };
     
     LYRMessage *message = [self.layerClient newMessageWithParts:@[messagePart] options:pushOptions error:nil];
@@ -560,12 +550,7 @@ static UIColor *LSRandomColor(void)
 
 - (NSUInteger)numberOfMessages
 {
-    LYRQuery *message = [LYRQuery queryWithQueryableClass:[LYRMessage class]];
-    
-    NSError *error;
-    NSOrderedSet *messageList = [self.layerClient executeQuery:message error:&error];
-    
-    return messageList.count;
+    return [self.queryController numberOfObjectsInSection:0];
 }
 
 
