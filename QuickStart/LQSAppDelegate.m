@@ -154,26 +154,18 @@ static NSString *const LQSLayerAppIDString = @"LAYER_APP_ID";
 
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
 {
-    // Get Message from Metadata
-    __block LYRMessage *message = [self messageFromRemoteNotification:userInfo];
-    
     NSError *error;
-     BOOL success = [self.layerClient synchronizeWithRemoteNotification:userInfo completion:^(NSArray *changes, NSError *error) {
-        if (changes)
-        {
-            if ([changes count])
-            {
-                message = [self messageFromRemoteNotification:userInfo];
-                completionHandler(UIBackgroundFetchResultNewData);
+    BOOL success = [self.layerClient synchronizeWithRemoteNotification:userInfo completion:^(LYRConversation * _Nullable conversation, LYRMessage * _Nullable message, NSError * _Nullable error) {
+        if (conversation || message) {
+            LYRMessagePart *messagePart = message.parts[0];
+            if([messagePart.MIMEType  isEqual: @"text/plain"]) {
+                NSLog(@"Pushed Message Contents: %@",[[NSString alloc] initWithData:messagePart.data encoding:NSUTF8StringEncoding]);
+            } else if ([messagePart.MIMEType  isEqual: @"image/png"]){
+                NSLog(@"Pushed Message Contents was an image");
             }
-            else
-            {
-                completionHandler(UIBackgroundFetchResultNoData);
-            }
-        }
-        else
-        {
-            completionHandler(UIBackgroundFetchResultFailed);
+            completionHandler(UIBackgroundFetchResultNewData);
+        } else {
+            completionHandler(error ? UIBackgroundFetchResultFailed : UIBackgroundFetchResultNoData);
         }
     }];
     
@@ -183,36 +175,6 @@ static NSString *const LQSLayerAppIDString = @"LAYER_APP_ID";
         NSLog(@"Failed processing push notification with error: %@", error);
         completionHandler(UIBackgroundFetchResultNoData);
     }
-}
-
-- (LYRMessage *)messageFromRemoteNotification:(NSDictionary *)remoteNotification
-{
-    static NSString *const LQSPushMessageIdentifierKeyPath = @"layer.message_identifier";
-    static NSString *const LQSPushAnnouncementIdentifierKeyPath = @"layer.announcement_identifier";
-
-    // Retrieve message URL from Push Notification
-    NSURL *messageURL = [NSURL URLWithString:[remoteNotification valueForKeyPath:LQSPushMessageIdentifierKeyPath]];
-    
-    if (!messageURL) {
-        messageURL = [NSURL URLWithString:[remoteNotification valueForKeyPath:LQSPushAnnouncementIdentifierKeyPath]];
-    }
-    
-    // Retrieve LYRMessage from Message URL
-    LYRQuery *query = [LYRQuery queryWithQueryableClass:[LYRMessage class]];
-    query.predicate = [LYRPredicate predicateWithProperty:@"identifier" predicateOperator:LYRPredicateOperatorIsIn value:[NSSet setWithObject:messageURL]];
-    
-    NSError *error;
-    NSOrderedSet *messages = [self.layerClient executeQuery:query error:&error];
-    if (!error) {
-        NSLog(@"Query contains %lu messages", (unsigned long)messages.count);
-        LYRMessage *message= messages.firstObject;
-        LYRMessagePart *messagePart = message.parts[0];
-        NSLog(@"Pushed Message Contents: %@",[[NSString alloc] initWithData:messagePart.data encoding:NSUTF8StringEncoding]);
-    } else {
-        NSLog(@"Query failed with error %@", error);
-    }
-    
-    return [messages firstObject];
 }
 
 #pragma mark - Layer Authentication Methods
