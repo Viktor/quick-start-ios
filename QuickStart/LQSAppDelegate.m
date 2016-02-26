@@ -162,8 +162,6 @@ static NSString *const LQSLayerAppIDString = @"LAYER_APP_ID";
                 NSLog(@"Pushed Message Contents: %@",[[NSString alloc] initWithData:messagePart.data encoding:NSUTF8StringEncoding]);
             } else if ([messagePart.MIMEType  isEqual: @"image/png"]){
                 NSLog(@"Pushed Message Contents was an image");
-            } else {
-                NSLog(@"Pushed Message was not text or an image");
             }
             completionHandler(UIBackgroundFetchResultNewData);
         } else {
