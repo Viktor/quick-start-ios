@@ -181,8 +181,8 @@ static NSString *const LQSLayerAppIDString = @"LAYER_APP_ID";
 
 - (void)authenticateLayerWithUserID:(NSString *)userID completion:(void (^)(BOOL success, NSError * error))completion
 {
-    if (self.layerClient.authenticatedUserID) {
-        NSLog(@"Layer Authenticated as User %@", self.layerClient.authenticatedUserID);
+    if (self.layerClient.authenticatedUser) {
+        NSLog(@"Layer Authenticated as User %@", self.layerClient.authenticatedUser.userID);
         if (completion) completion(YES, nil);
         return;
     }
@@ -216,12 +216,12 @@ static NSString *const LQSLayerAppIDString = @"LAYER_APP_ID";
             /*
              * 3. Submit identity token to Layer for validation
              */
-            [self.layerClient authenticateWithIdentityToken:identityToken completion:^(NSString *authenticatedUserID, NSError *error) {
-                if (authenticatedUserID) {
+            [self.layerClient authenticateWithIdentityToken:identityToken completion:^(LYRIdentity *authenticatedUser, NSError *error) {
+                if (authenticatedUser) {
                     if (completion) {
                         completion(YES, nil);
                     }
-                    NSLog(@"Layer Authenticated as User: %@", authenticatedUserID);
+                    NSLog(@"Layer Authenticated as User: %@", authenticatedUser.userID);
                 } else {
                     completion(NO, error);
                 }
