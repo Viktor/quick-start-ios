@@ -93,7 +93,10 @@ static NSString *const LQSLayerAppIDString = @"LAYER_APP_ID";
         [self setupPushNotificationOptions];
     } else {
         // Register device for iOS7
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         [application registerForRemoteNotificationTypes:UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeBadge];
+#pragma clang diagnostic pop
     }
 }
 
